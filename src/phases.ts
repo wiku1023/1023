@@ -21,7 +21,7 @@ import { Biome } from "./data/enums/biome";
 import { ModifierTier } from "./modifier/modifier-tier";
 import { FusePokemonModifierType, ModifierPoolType, ModifierType, ModifierTypeFunc, ModifierTypeOption, PokemonModifierType, PokemonMoveModifierType, RememberMoveModifierType, TmModifierType, getDailyRunStarterModifiers, getEnemyBuffModifierForWave, getModifierType, getPlayerModifierTypeOptions, getPlayerShopModifierTypeOptionsForWave, modifierTypes, regenerateModifierPoolThresholds } from "./modifier/modifier-type";
 import SoundFade from "phaser3-rex-plugins/plugins/soundfade";
-import { BattlerTagLapseType, EncoreTag, HideSpriteTag as HiddenTag, ProtectedTag, TrappedTag } from "./data/battler-tags";
+import { BattlerTagLapseType, EncoreTag, HealBlockTag, HideSpriteTag as HiddenTag, ProtectedTag, TrappedTag } from "./data/battler-tags";
 import { BattlerTagType } from "./data/enums/battler-tag-type";
 import { getPokemonMessage } from "./messages";
 import { Starter } from "./ui/starter-select-ui-handler";
@@ -3865,6 +3865,12 @@ export class PokemonHealPhase extends CommonAnimPhase {
     if (!pokemon.isOnField() || (!this.revive && !pokemon.isActive())) {
       super.end();
       return;
+    }
+
+    if (pokemon.getTag(HealBlockTag)) {
+        this.scene.queueMessage(getPokemonMessage(pokemon, ' was prevented from healing!'));
+        super.end();
+        return;
     }
 
     const fullHp = pokemon.getHpRatio() >= 1;

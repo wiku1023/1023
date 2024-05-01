@@ -1,6 +1,8 @@
 import { SimpleTranslationEntries } from "#app/plugins/i18n";
 
 export const menu: SimpleTranslationEntries = {
+  "yes": "Oui",
+  "no": "Non",
   "cancel": "Annuler",
   "continue": "Continuer",
   "dailyRun": "Défi du jour (Bêta)",
@@ -30,6 +32,12 @@ export const menu: SimpleTranslationEntries = {
   "boyOrGirl": "Es-tu un garçon ou une fille ?",
   "boy": "Garçon",
   "girl": "Fille",
+  "confirmStarterSelection": "Commencer avec ces Pokémon ?",
+  "evolving": "Hein ?\n{{pokemonName}} évolue !",
+  "stoppedEvolving": "{{pokemonName}} a stoppé son évolution.",
+  "pauseEvolutionsQuestion": "Voulez-vous pauser les évolutions pour {{pokemonName}} ?\nLes évolutions peuvent être réactivées depuis l'écran d'équipe.",
+  "evolutionsPaused": "Les évolutions ont été mises en pause pour {{pokemonName}}.",
+  "evolutionDone": "Félicitations !\nVotre {{pokemonName}} a évolué en {{evolvedPokemonName}} !",
   "dailyRankings": "Classement du Jour",
   "weeklyRankings": "Classement de la Semaine",
   "noRankings": "Pas de Classement",

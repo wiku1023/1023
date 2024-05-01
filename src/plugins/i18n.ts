@@ -62,6 +62,12 @@ import { tutorial as frTutorial } from '../locales/fr/tutorial';
 import { tutorial as itTutorial} from '../locales/it/tutorial';
 import { tutorial as deTutorial } from '../locales/de/tutorial';
 
+import { weather as enWeather } from '../locales/en/weather';
+import { weather as frWeather } from '../locales/fr/weather';
+import { weather as deWeather } from '../locales/de/weather';
+import { weather as esWeather } from '../locales/es/weather';
+import { weather as itWeather } from '../locales/it/weather';
+
 export interface SimpleTranslationEntries {
   [key: string]: string
 }
@@ -131,6 +137,7 @@ export function initI18n(): void {
         commandUiHandler: enCommandUiHandler,
         fightUiHandler: enFightUiHandler,
         tutorial: enTutorial,
+        weather: enWeather
       },
       es: {
         menu: esMenu,
@@ -144,6 +151,7 @@ export function initI18n(): void {
         commandUiHandler: esCommandUiHandler,
         fightUiHandler: esFightUiHandler,
         tutorial: esTutorial,
+        weather: esWeather
       },
       fr: {
         menu: frMenu,
@@ -157,6 +165,7 @@ export function initI18n(): void {
         commandUiHandler: frCommandUiHandler,
         fightUiHandler: frFightUiHandler,
         tutorial: frTutorial,
+        weather: frWeather
       },
       it: {
         menu: itMenu,
@@ -165,6 +174,7 @@ export function initI18n(): void {
         pokemonStat: itPokemonStat,
         fightUiHandler: itFightUiHandler,
         tutorial: itTutorial,
+        weather: itWeather
       },
       de: {
         menu: deMenu,
@@ -178,6 +188,7 @@ export function initI18n(): void {
         commandUiHandler: deCommandUiHandler,
         fightUiHandler: deFightUiHandler,
         tutorial: deTutorial,
+        weather: deWeather
       }
     },
   });
@@ -198,6 +209,7 @@ declare module 'i18next' {
       commandUiHandler: typeof enCommandUiHandler;
       fightUiHandler: typeof enFightUiHandler;
       tutorial: typeof enTutorial;
+      weather: typeof enWeather;
     };
   }
 }

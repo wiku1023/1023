@@ -437,6 +437,25 @@ export enum MoveEffectTrigger {
   HIT
 }
 
+export class VariablePriorityAttr extends MoveAttr {
+
+  private priorityChangeFunc: (user: Pokemon, target: Pokemon, move: Move) => number;
+
+  constructor(priorityChangeFunc: (user: Pokemon, target: Pokemon, move: Move) => number) {
+    super();
+
+    this.priorityChangeFunc = priorityChangeFunc;
+  }
+
+  apply(user: Pokemon, target: Pokemon, move: Move, args: any[])
+  {
+    console.log(`Checking dynamic priority for move ${move}`);
+    (args[0] as Utils.NumberHolder).value = this.priorityChangeFunc(user, target, move);
+    console.log(`Returned Priority ${args[0].value}`);
+    return true;
+  }
+}
+
 export class MoveEffectAttr extends MoveAttr {
   public trigger: MoveEffectTrigger;
   public firstHitOnly: boolean;
@@ -1181,6 +1200,34 @@ export class HealStatusEffectAttr extends MoveEffectAttr {
   }
 
   getUserBenefitScore(user: Pokemon, target: Pokemon, move: Move): integer {
+    return user.status ? 10 : 0;
+  }
+}
+
+  apply(user: Pokemon, target: Pokemon, move: Move, args: any[]) {
+    const pokemon = this.selfTarget ? user : target;
+    const party = user.isPlayer() ? user.scene.getParty() : user.scene.getEnemyParty();
+
+    for(let p of party) {
+      if(p.isActive() && p != user) {
+
+      }
+      if(p.status && p.status.effect != StatusEffect.FAINT)
+      {
+        p.resetStatus();
+        p.updateInfo();        
+      }
+    }
+
+    return true;
+  }
+
+  getUserBenefitScore(user: Pokemon, target: Pokemon, move: Move): integer {
+    const party = user.isPlayer() ? user.scene.getParty() : user.scene.getEnemyParty();
+    let score = user.status ? 2 : -5;
+    for(let p of party) {
+      score += p.status ? 0 : 10;
+    }
     return user.status ? 10 : 0;
   }
 }
@@ -2802,7 +2849,9 @@ export class AddArenaTagAttr extends MoveEffectAttr {
       return false;
 
     if (move.chance < 0 || move.chance === 100 || user.randSeedInt(100) < move.chance) {
-      user.scene.arena.addTag(this.tagType, this.turnCount, move.id, user.id, (this.selfSideTarget ? user : target).isPlayer() ? ArenaTagSide.PLAYER : ArenaTagSide.ENEMY);
+      const side =  (this.selfSideTarget ? user : target).isPlayer() ? ArenaTagSide.PLAYER : ArenaTagSide.ENEMY;
+      user.scene.arena.addTag(this.tagType, this.turnCount, move.id, user.id, side);
+      console.log(`Adding tag ${this.tagType} to the side ${side} for ${this.turnCount} turns`);
       return true;
     }
 
@@ -2810,8 +2859,8 @@ export class AddArenaTagAttr extends MoveEffectAttr {
   }
 
   getCondition(): MoveConditionFunc {
-    return this.failOnOverlap
-      ? (user, target, move) => !user.scene.arena.getTagOnSide(this.tagType, target.isPlayer() ? ArenaTagSide.PLAYER : ArenaTagSide.ENEMY)
+    return this.failOnOverlap ? 
+      (user, target, move) => !user.scene.arena.getTagOnSide(this.tagType, (this.selfSideTarget ? user : target).isPlayer() ? ArenaTagSide.PLAYER : ArenaTagSide.ENEMY)
       : null;
   }
 }
@@ -4388,9 +4437,9 @@ export function initMoves() {
       .condition((user, target, move) => user.status?.effect === StatusEffect.SLEEP)
       .ignoresVirtual(),
     new StatusMove(Moves.HEAL_BELL, Type.NORMAL, -1, 5, -1, 0, 2)
+      .attr(HealStatusInPartyAttr)
       .soundBased()
-      .target(MoveTarget.USER_AND_ALLIES)
-      .unimplemented(),
+      .target(MoveTarget.USER_AND_ALLIES),
     new AttackMove(Moves.RETURN, Type.NORMAL, MoveCategory.PHYSICAL, -1, 100, 20, -1, 0, 2)
       .attr(FriendshipPowerAttr),
     new AttackMove(Moves.PRESENT, Type.NORMAL, MoveCategory.PHYSICAL, -1, 90, 15, -1, 0, 2)
@@ -4661,7 +4710,7 @@ export function initMoves() {
       .ballBombMove(),
     new StatusMove(Moves.AROMATHERAPY, Type.GRASS, -1, 5, -1, 0, 3)
       .target(MoveTarget.USER_AND_ALLIES)
-      .unimplemented(),
+      .attr(HealStatusInPartyAttr),
     new StatusMove(Moves.FAKE_TEARS, Type.DARK, 100, 20, -1, 0, 3)
       .attr(StatChangeAttr, BattleStat.SPDEF, -2),
     new AttackMove(Moves.AIR_CUTTER, Type.FLYING, MoveCategory.SPECIAL, 60, 95, 25, -1, 0, 3)
@@ -4807,8 +4856,9 @@ export function initMoves() {
       .partial(),
     new StatusMove(Moves.TAILWIND, Type.FLYING, -1, 15, -1, 0, 4)
       .windMove()
-      .target(MoveTarget.USER_SIDE)
-      .unimplemented(),
+      .attr(AddArenaTagAttr, ArenaTagType.TAILWIND, 4, true)
+      .target(MoveTarget.USER_SIDE),
+      // .unimplemented(),
     new StatusMove(Moves.ACUPRESSURE, Type.NORMAL, -1, 30, -1, 0, 4)
       .attr(StatChangeAttr, BattleStat.RAND, 2)
       .target(MoveTarget.USER_OR_NEAR_ALLY),
@@ -5975,7 +6025,7 @@ export function initMoves() {
       .attr(MovePowerMultiplierAttr, (user, target, move) => user.scene.arena.getTerrainType() === TerrainType.MISTY && user.isGrounded() ? 1.5 : 1)
       .condition(failIfDampCondition),
     new AttackMove(Moves.GRASSY_GLIDE, Type.GRASS, MoveCategory.PHYSICAL, 55, 100, 20, -1, 0, 8)
-      .partial(),
+      .attr(VariablePriorityAttr, (user, target, move) => user.scene.arena.getTerrainType() === TerrainType.GRASSY && user.isGrounded() ? 1 : 0),
     new AttackMove(Moves.RISING_VOLTAGE, Type.ELECTRIC, MoveCategory.SPECIAL, 70, 100, 20, -1, 0, 8)
       .attr(MovePowerMultiplierAttr, (user, target, move) => user.scene.arena.getTerrainType() === TerrainType.ELECTRIC && target.isGrounded() ? 2 : 1),
     new AttackMove(Moves.TERRAIN_PULSE, Type.NORMAL, MoveCategory.SPECIAL, 50, 100, 10, -1, 0, 8)

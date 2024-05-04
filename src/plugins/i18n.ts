@@ -62,6 +62,12 @@ import { tutorial as frTutorial } from '../locales/fr/tutorial';
 import { tutorial as itTutorial} from '../locales/it/tutorial';
 import { tutorial as deTutorial } from '../locales/de/tutorial';
 
+import {pokemonForm as dePokemonForm } from "../locales/de/pokemon-form"
+import {pokemonForm as enPokemonForm } from "../locales/en/pokemon-form"
+import {pokemonForm as esPokemonForm } from "../locales/es/pokemon-form"
+import {pokemonForm as frPokemonForm } from "../locales/fr/pokemon-form"
+import {pokemonForm as itPokemonForm } from "../locales/it/pokemon-form"
+
 export interface SimpleTranslationEntries {
   [key: string]: string
 }
@@ -128,6 +134,7 @@ export function initI18n(): void {
         pokeball: enPokeball,
         pokemon: enPokemon,
         pokemonStat: enPokemonStat,
+        pokemonForm: enPokemonForm,
         commandUiHandler: enCommandUiHandler,
         fightUiHandler: enFightUiHandler,
         tutorial: enTutorial,
@@ -141,6 +148,7 @@ export function initI18n(): void {
         pokeball: esPokeball,
         pokemon: esPokemon,
         pokemonStat: esPokemonStat,
+        pokemonForm: esPokemonForm,
         commandUiHandler: esCommandUiHandler,
         fightUiHandler: esFightUiHandler,
         tutorial: esTutorial,
@@ -154,6 +162,7 @@ export function initI18n(): void {
         pokeball: frPokeball,
         pokemon: frPokemon,
         pokemonStat: frPokemonStat,
+        pokemonForm: frPokemonForm,
         commandUiHandler: frCommandUiHandler,
         fightUiHandler: frFightUiHandler,
         tutorial: frTutorial,
@@ -163,6 +172,7 @@ export function initI18n(): void {
         menuUiHandler: itMenuUiHandler,
         battle: itBattle,
         pokemonStat: itPokemonStat,
+        pokemonForm: itPokemonForm,
         fightUiHandler: itFightUiHandler,
         tutorial: itTutorial,
       },
@@ -175,6 +185,7 @@ export function initI18n(): void {
         pokeball: dePokeball,
         pokemon: dePokemon,
         pokemonStat: dePokemonStat,
+        pokemonForm: dePokemonForm,
         commandUiHandler: deCommandUiHandler,
         fightUiHandler: deFightUiHandler,
         tutorial: deTutorial,
@@ -198,6 +209,7 @@ declare module 'i18next' {
       commandUiHandler: typeof enCommandUiHandler;
       fightUiHandler: typeof enFightUiHandler;
       tutorial: typeof enTutorial;
+      pokemonForm: typeof enPokemonForm;
     };
   }
 }

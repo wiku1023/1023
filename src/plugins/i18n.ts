@@ -62,6 +62,12 @@ import { tutorial as frTutorial } from '../locales/fr/tutorial';
 import { tutorial as itTutorial} from '../locales/it/tutorial';
 import { tutorial as deTutorial } from '../locales/de/tutorial';
 
+import {pokemonForm as dePokemonForm } from "../locales/de/pokemon-form"
+import {pokemonForm as enPokemonForm } from "../locales/en/pokemon-form"
+import {pokemonForm as esPokemonForm } from "../locales/es/pokemon-form"
+import {pokemonForm as frPokemonForm } from "../locales/fr/pokemon-form"
+import {pokemonForm as itPokemonForm } from "../locales/it/pokemon-form"
+
 export interface SimpleTranslationEntries {
   [key: string]: string
 }
@@ -131,6 +137,7 @@ export function initI18n(): void {
         commandUiHandler: enCommandUiHandler,
         fightUiHandler: enFightUiHandler,
         tutorial: enTutorial,
+        pokemonForm: enPokemonForm,
       },
       es: {
         menu: esMenu,
@@ -144,6 +151,7 @@ export function initI18n(): void {
         commandUiHandler: esCommandUiHandler,
         fightUiHandler: esFightUiHandler,
         tutorial: esTutorial,
+        pokemonForm: esPokemonForm,
       },
       fr: {
         menu: frMenu,
@@ -157,6 +165,7 @@ export function initI18n(): void {
         commandUiHandler: frCommandUiHandler,
         fightUiHandler: frFightUiHandler,
         tutorial: frTutorial,
+        pokemonForm: frPokemonForm,
       },
       it: {
         menu: itMenu,
@@ -165,6 +174,7 @@ export function initI18n(): void {
         pokemonStat: itPokemonStat,
         fightUiHandler: itFightUiHandler,
         tutorial: itTutorial,
+        pokemonForm: itPokemonForm,
       },
       de: {
         menu: deMenu,
@@ -178,6 +188,7 @@ export function initI18n(): void {
         commandUiHandler: deCommandUiHandler,
         fightUiHandler: deFightUiHandler,
         tutorial: deTutorial,
+        pokemonForm: dePokemonForm,
       }
     },
   });
@@ -198,6 +209,7 @@ declare module 'i18next' {
       commandUiHandler: typeof enCommandUiHandler;
       fightUiHandler: typeof enFightUiHandler;
       tutorial: typeof enTutorial;
+      pokemonForm: typeof enPokemonForm;
     };
   }
 }

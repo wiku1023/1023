@@ -177,9 +177,9 @@ export const pokemonForm: SimpleTranslationEntries = {
     "eiscueNoIce": "No Ice",
     "morpekoFullBelly": "Full Belly Mode",
     "morpekoHangry": "Hangry Mode",
-    // Legendary Heroes is Zacian ans Zamazenta
-    "LegendaryHeroesHero": "Hero of Many Battles",
-    "LegendaryHeroesCrowned": "Crowned",
+    // legendary Heroes is Zacian ans Zamazenta
+    "legendaryHeroesHero": "Hero of Many Battles",
+    "legendaryHeroesCrowned": "Crowned",
     "eternamax": "E-Max",
     "urshifuSingleStrike": "Single Strike Style",
     "urshifuRapidStrike": "Rapid Strike Style",

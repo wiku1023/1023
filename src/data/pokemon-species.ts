@@ -2451,7 +2451,7 @@ export function initSpecies() {
     ),
     new PokemonSpecies(Species.SINISTCHA, 9, false, false, false, "Matcha Pokémon", Type.GRASS, Type.GHOST, 0.2, 2.2, Abilities.HOSPITALITY, Abilities.NONE, Abilities.HEATPROOF, 508, 71, 60, 106, 121, 80, 70, 60, 50, 178, GrowthRate.SLOW, null, false, false,
       new PokemonForm(i18next.t("pokemonForm:sinistchaUnremarkable"), "unremarkable", Type.GRASS, Type.GHOST, 0.2, 2.2, Abilities.HOSPITALITY, Abilities.NONE, Abilities.HEATPROOF, 508, 71, 60, 106, 121, 80, 70, 60, 50, 178),
-      new PokemonForm(i18next.t("pokemonForm:sinisrchaMasterpiece"), "masterpiece", Type.GRASS, Type.GHOST, 0.2, 2.2, Abilities.HOSPITALITY, Abilities.NONE, Abilities.HEATPROOF, 508, 71, 60, 106, 121, 80, 70, 60, 50, 178),
+      new PokemonForm(i18next.t("pokemonForm:sinistchaMasterpiece"), "masterpiece", Type.GRASS, Type.GHOST, 0.2, 2.2, Abilities.HOSPITALITY, Abilities.NONE, Abilities.HEATPROOF, 508, 71, 60, 106, 121, 80, 70, 60, 50, 178),
     ),
     new PokemonSpecies(Species.OKIDOGI, 9, false, true, false, "Retainer Pokémon", Type.POISON, Type.FIGHTING, 1.8, 92.2, Abilities.TOXIC_CHAIN, Abilities.NONE, Abilities.GUARD_DOG, 555, 88, 128, 115, 58, 86, 80, 3, 0, 276, GrowthRate.SLOW, 100, false),
     new PokemonSpecies(Species.MUNKIDORI, 9, false, true, false, "Retainer Pokémon", Type.POISON, Type.PSYCHIC, 1, 12.2, Abilities.TOXIC_CHAIN, Abilities.NONE, Abilities.FRISK, 555, 88, 75, 66, 130, 90, 106, 3, 0, 276, GrowthRate.SLOW, 100, false),

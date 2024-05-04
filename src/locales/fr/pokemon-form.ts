@@ -216,7 +216,7 @@ export const pokemonForm: SimpleTranslationEntries = {
     "poltchageistCounterfeit": "Counterfeit Form",
     "poltchageistArtisan": "Artisan Form",
     "sinistchaUnremarkable": "Unremarkable Form",
-    "sinisrchaMasterpiece": "Masterpiece Form",
+    "sinistchaMasterpiece": "Masterpiece Form",
     "ogerponTealMask": "Teal Mask",
     "ogerponWellspringMask": "Wellspring Mask",
     "ogerponHearthflameMask": "Hearthflame Mask",

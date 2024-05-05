@@ -1662,7 +1662,9 @@ export class MultCritAbAttr extends AbAttr {
 export class CritIfTargetPoisonedAbAttr extends AbAttr {
   apply(pokemon: Pokemon, passive: boolean, cancelled: Utils.BooleanHolder, args: any[]): boolean {
     const target = (args[1] as Pokemon);
-    if(target.status.effect === StatusEffect.TOXIC || target.status.effect === StatusEffect.POISON)
+    if(!(target.status.effect === StatusEffect.TOXIC || target.status.effect === StatusEffect.POISON))
+      return false;
+
     (args[0] as Utils.BooleanHolder).value = true;
     return true;
   }

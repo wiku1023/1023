@@ -221,6 +221,7 @@ export default class BattleScene extends SceneBase {
 	public rngCounter: integer = 0;
 	public rngSeedOverride: string = '';
 	public rngOffset: integer = 0;
+	private analogStickThreshold = 0.5;
 
 	constructor() {
 		super('battle');
@@ -1456,8 +1457,66 @@ export default class BattleScene extends SceneBase {
 		}
 		if (inputSuccess && this.enableVibration && typeof navigator.vibrate !== 'undefined')
 			navigator.vibrate(vibrationLength || 10);		
+
+		if(this.gamepadSupport){
+			this.handleAnalogStick();
+		}
 	}
 
+	private analogStickDirections = {
+		[Button.UP]: false,
+		[Button.DOWN]: false,
+		[Button.LEFT]: false,
+		[Button.RIGHT]: false
+	  };
+	  
+	handleAnalogStick(): void {
+		const gamepad = this.input.gamepad?.gamepads[0];
+		if (!gamepad)
+			return;
+		
+		const leftStickX = gamepad.leftStick.x;
+		const leftStickY = gamepad.leftStick.y;
+		
+		if (Math.abs(leftStickX) > Math.abs(leftStickY)) {
+			if (leftStickX < -this.analogStickThreshold) {
+			// Left analog stick moved to the left
+				this.handleAnalogStickDirection(Button.LEFT);
+			} else if (leftStickX > this.analogStickThreshold) {
+			// Left analog stick moved to the right
+				this.handleAnalogStickDirection(Button.RIGHT);
+			} else {
+			// Left analog stick is in the neutral position horizontally
+				this.analogStickDirections[Button.LEFT] = false;
+				this.analogStickDirections[Button.RIGHT] = false;
+			}
+		} else {
+			if (leftStickY < -this.analogStickThreshold) {
+			// Left analog stick moved up
+				this.handleAnalogStickDirection(Button.UP);
+			} else if (leftStickY > this.analogStickThreshold) {
+			// Left analog stick moved down
+				this.handleAnalogStickDirection(Button.DOWN);
+			} else {
+			// Left analog stick is in the neutral position vertically
+				this.analogStickDirections[Button.UP] = false;
+				this.analogStickDirections[Button.DOWN] = false;
+			}
+		}
+	}
+	
+	private handleAnalogStickDirection(button: Button): void {
+		if (!this.analogStickDirections[button]) {
+			// First button press
+			this.ui.processInput(button);
+			this.setLastProcessedMovementTime(button);
+			this.analogStickDirections[button] = true;
+		} else if (this.repeatInputDurationJustPassed(button)) {
+			// Subsequent holds
+			this.ui.processInput(button);
+			this.setLastProcessedMovementTime(button);
+		}
+	}
   /**
    * gamepadButtonJustDown returns true if @param button has just been pressed down
    * or not. It will only return true once, until the key is released and pressed down
@@ -1480,7 +1539,7 @@ export default class BattleScene extends SceneBase {
 
 	buttonJustPressed(button: Button): boolean {
 		const gamepad = this.input.gamepad?.gamepads[0];
-		return this.buttonKeys[button].some(k => Phaser.Input.Keyboard.JustDown(k)) || this.gamepadButtonJustDown(gamepad?.buttons[this.gamepadKeyConfig[button]]);
+		return this.buttonKeys[button].some(k => Phaser.Input.Keyboard.JustDown(k)) || this.gamepadButtonJustDown(gamepad?.buttons[this.gamepadKeyConfig[button]])
 	}
 
 	/**
@@ -1507,15 +1566,22 @@ export default class BattleScene extends SceneBase {
 	 */
 	repeatInputDurationJustPassed(button: Button): boolean {
 		if (this.movementButtonLock !== null && this.movementButtonLock !== button) {
-			return false;
+		  return false;
 		}
-		if (this.buttonKeys[button].every(k => k.isUp) && this.gamepadButtonStates.every(b => b == false)) {
-			this.movementButtonLock = null;
-			return false;
+	  
+		const analogStickHeld = this.analogStickDirections[button];
+		const isButtonPressed = analogStickHeld || this.buttonKeys[button]?.some(k => k.isDown);
+	  
+		if (!isButtonPressed && this.gamepadButtonStates.every(b => b == false)) {
+		  this.movementButtonLock = null;
+		  return false;
 		}
+	  
 		if (this.time.now - this.lastProcessedButtonPressTimes.get(button) >= repeatInputDelayMillis) {
-			return true;
+		  return true;
 		}
+	  
+		return false;
 	}
 
 	setLastProcessedMovementTime(button: Button) {

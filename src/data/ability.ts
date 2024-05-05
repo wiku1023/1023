@@ -2472,17 +2472,6 @@ export class NoFusionAbilityAbAttr extends AbAttr {
   }
 }
 
-export class StallAbAttr extends AbAttr {
-  constructor() {
-    super(false);
-  }
-
-  apply(pokemon: Pokemon, passive: boolean, cancelled: Utils.BooleanHolder, args: any[]): boolean {
-    args[0].value = true;
-    return true;
-  }
-}
-
 function applyAbAttrsInternal<TAttr extends AbAttr>(attrType: { new(...args: any[]): TAttr },
   pokemon: Pokemon, applyFunc: AbAttrApplyFunc<TAttr>, args: any[], isAsync: boolean = false, showAbilityInstant: boolean = false, quiet: boolean = false, passive: boolean = false): Promise<void> {
   return new Promise(resolve => {
@@ -2957,8 +2946,7 @@ export function initAbilities() {
     new Ability(Abilities.NO_GUARD, 4)
       .attr(AlwaysHitAbAttr)
       .attr(DoubleBattleChanceAbAttr),
-    new Ability(Abilities.STALL, 4)
-      .attr(StallAbAttr),
+    new Ability(Abilities.STALL, 4),
     new Ability(Abilities.TECHNICIAN, 4)
       .attr(MovePowerBoostAbAttr, (user, target, move) => move.power <= 60, 1.5),
     new Ability(Abilities.LEAF_GUARD, 4)

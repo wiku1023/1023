@@ -591,12 +591,10 @@ export abstract class FieldPhase extends BattlePhase {
       orderedTargets = orderedTargets.reverse();
 
     orderedTargets.sort((a: Pokemon, b: Pokemon) => {
-      const aStall = new Utils.BooleanHolder(false);
-      applyAbAttrs(StallAbAttr, a, null, aStall);
-      const bStall = new Utils.BooleanHolder(false);
-      applyAbAttrs(StallAbAttr, b, null, bStall);
+      const aStall = a.hasAbility(Abilities.STALL);
+      const bStall = b.hasAbility(Abilities.STALL);
 
-      return aStall.value === bStall.value ? 0 : aStall.value ? 1 : -1;
+      return aStall === bStall ? 0 : aStall ? 1 : -1;
     });
 
     return orderedTargets.map(t => t.getFieldIndex() + (!t.isPlayer() ? BattlerIndex.ENEMY : 0));

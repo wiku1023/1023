@@ -2298,7 +2298,7 @@ export class MovePhase extends BattlePhase {
       this.end();
     };
 
-    if (!this.followUp && this.pokemon.status && !this.pokemon.status.isPostTurn()) {
+    if (!this.followUp && this.pokemon.status && !this.pokemon.status.isPostTurn() && this.pokemon.getStatusEffect()) {
       this.pokemon.status.incrementTurn();
       let activated = false;
       let healed = false;
@@ -2927,7 +2927,7 @@ export class ObtainStatusEffectPhase extends PokemonPhase {
         });
         return;
       }
-    } else if (pokemon.status.effect === this.statusEffect)
+    } else if (pokemon.getStatusEffect() === this.statusEffect)
       this.scene.queueMessage(getPokemonMessage(pokemon, getStatusEffectOverlapText(this.statusEffect)));
     this.end();
   }

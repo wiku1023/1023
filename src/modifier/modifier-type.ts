@@ -70,7 +70,10 @@ export class ModifierType {
       return this.tier;
     if (!this.id)
       return null;
-    let poolTypes: Modifier        poolTypes = [ poolType, ModifierPoolType.TRAINER, ModifierPoolType.WILD ];
+    let poolTypes: ModifierPoolType[];
+    switch (poolType) {
+      case ModifierPoolType.PLAYER:
+        poolTypes = [ poolType, ModifierPoolType.TRAINER, ModifierPoolType.WILD ];
         break;
       case ModifierPoolType.WILD:
         poolTypes = [ poolType, ModifierPoolType.PLAYER, ModifierPoolType.TRAINER ];
@@ -812,9 +815,9 @@ export const modifierTypes = {
   PP_UP: () => new PokemonPpUpModifierType('PP Up', 1),
   PP_MAX: () => new PokemonPpUpModifierType('PP Max', 3),
 
-  REPEL: () => new DoubleBattleChanceBoosterModifierType('Repel', 5),
-  SUPER_REPEL: () => new DoubleBattleChanceBoosterModifierType('Super Repel', 10),
-  MAX_REPEL: () => new DoubleBattleChanceBoosterModifierType('Max Repel', 25),
+  REPEL: () => new DoubleBattleChancePreventerModifierType('Repel', 5),
+  SUPER_REPEL: () => new DoubleBattleChancePreventerModifierType('Super Repel', 10),
+  MAX_REPEL: () => new DoubleBattleChancePreventerModifierType('Max Repel', 25),
 
   LURE: () => new DoubleBattleChanceBoosterModifierType('Lure', 5),
   SUPER_LURE: () => new DoubleBattleChanceBoosterModifierType('Super Lure', 10),
@@ -991,7 +994,15 @@ const modifierPool: ModifierPool = {
       const thresholdPartyMemberCount = Math.min(party.filter(p => p.hp && p.getMoveset().filter(m => (m.getMove().pp - m.ppUsed) <= 5).length).length, 3);
       return thresholdPartyMemberCount;
     }, 3),
-    new WeightedModifierType(modifierTypes.LURE, 2),
+    new WeightedModifierType(modifierTypes.REPEL, (party: Pokemon[]) => {
+      const existingItem = party[0].scene.findModifier(m => m.type instanceof DoubleBattleChancePreventerModifierType || m.type instanceof DoubleBattleChanceBoosterModifierType);
+      //return existingItem ? 0 : 2;
+      return 10000
+    }),
+    new WeightedModifierType(modifierTypes.LURE, (party: Pokemon[]) => {
+      const existingItem = party[0].scene.findModifier(m => m.type instanceof DoubleBattleChancePreventerModifierType || m.type instanceof DoubleBattleChanceBoosterModifierType);
+      return existingItem ? 0 : 2;
+    }),
     new WeightedModifierType(modifierTypes.TEMP_STAT_BOOSTER, 4),
     new WeightedModifierType(modifierTypes.BERRY, 2),
     new WeightedModifierType(modifierTypes.TM_COMMON, 1),
@@ -1040,7 +1051,7 @@ const modifierPool: ModifierPool = {
       return existingItem ? 0 : 4;
     }),
     new WeightedModifierType(modifierTypes.SUPER_LURE, (party: Pokemon[]) => {
-      const existingItem = party[0].scene.findModifier(m => m.type instanceof DoubleBattleChanceBoosterModifierType || m.type instanceof DoubleBattleChanceBoosterModifierType);
+      const existingItem = party[0].scene.findModifier(m => m.type instanceof DoubleBattleChancePreventerModifierType || m.type instanceof DoubleBattleChanceBoosterModifierType);
       return existingItem ? 0 : 4;
     }),
     new WeightedModifierType(modifierTypes.NUGGET, 5),
@@ -1061,7 +1072,14 @@ const modifierPool: ModifierPool = {
   ].map(m => { m.setTier(ModifierTier.GREAT); return m; }),
   [ModifierTier.ULTRA]: [
     new WeightedModifierType(modifierTypes.ULTRA_BALL, 24),
-    new WeightedModifierType(modifierTypes.MAX_LURE, 4),
+    new WeightedModifierType(modifierTypes.MAX_REPEL, (party: Pokemon[]) => {
+      const existingItem = party[0].scene.findModifier(m => m.type instanceof DoubleBattleChancePreventerModifierType || m.type instanceof DoubleBattleChanceBoosterModifierType);
+      return existingItem ? 0 : 4;
+    }),
+    new WeightedModifierType(modifierTypes.MAX_LURE, (party: Pokemon[]) => {
+      const existingItem = party[0].scene.findModifier(m => m.type instanceof DoubleBattleChancePreventerModifierType || m.type instanceof DoubleBattleChanceBoosterModifierType);
+      return existingItem ? 0 : 4;
+    }),
     new WeightedModifierType(modifierTypes.BIG_NUGGET, 12),
     new WeightedModifierType(modifierTypes.PP_UP, 9),
     new WeightedModifierType(modifierTypes.PP_MAX, 3),
@@ -1539,85 +1557,6 @@ export function getPartyLuckValue(party: Pokemon[]): integer {
 
 export function getLuckString(luckValue: integer): string {
   return [ 'D', 'C', 'C+', 'B-', 'B', 'B+', 'A-', 'A', 'A+', 'A++', 'S', 'S+', 'SS', 'SS+', 'SSS' ][luckValue];
- (modifierType instanceof ModifierTypeGenerator) {
-    modifierType = (modifierType as ModifierTypeGenerator).generateType(party);
-    if (modifierType === null) {
-      if (player)
-        console.log(ModifierTier[tier], upgradeCount);
-      return getNewModifierTypeOption(party, poolType, tier, upgradeCount, ++retryCount);
-    }
-  }
-
-  console.log(modifierType, !player ? '(enemy)' : '');
-
-  return new ModifierTypeOption(modifierType as ModifierType, upgradeCount);
-}
-
-export function getDefaultModifierTypeForTier(tier: ModifierTier): ModifierType {
-  let modifierType: ModifierType | WeightedModifierType = modifierPool[tier || ModifierTier.COMMON][0];
-  if (modifierType instanceof WeightedModifierType)
-    modifierType = (modifierType as WeightedModifierType).modifierType;
-  return modifierType;
-}
-
-export class ModifierTypeOption {
-  public type: ModifierType;
-  public upgradeCount: integer;
-  public cost: integer;
-
-  constructor(type: ModifierType, upgradeCount: integer, cost: number = 0) {
-    this.type = type;
-    this.upgradeCount = upgradeCount;
-    this.cost = Math.min(Math.round(cost), Number.MAX_SAFE_INTEGER);
-  }
-}
-
-export function getPartyLuckValue(party: Pokemon[]): integer {
-  return Phaser.Math.Clamp(party.map(p => p.isFainted() ? 0 : p.getLuck())
-    .reduce((total: integer, value: integer) => total += value, 0), 0, 14);
-}
-
-export function getLuckString(luckValue: integer): string {
-  return ['D', 'C', 'C+', 'B-', 'B', 'B+', 'A-', 'A', 'A+', 'A++', 'S', 'S+', 'SS', 'SS+', 'SSS'][luckValue];
- (modifierType as ModifierTypeGenerator).generateType(party);
-    if (modifierType === null) {
-      if (player)
-        console.log(ModifierTier[tier], upgradeCount);
-      return getNewModifierTypeOption(party, poolType, tier, upgradeCount, ++retryCount);
-    }
-  }
-
-  console.log(modifierType, !player ? '(enemy)' : '');
-
-  return new ModifierTypeOption(modifierType as ModifierType, upgradeCount);
-}
-
-export function getDefaultModifierTypeForTier(tier: ModifierTier): ModifierType {
-  let modifierType: ModifierType | WeightedModifierType = modifierPool[tier || ModifierTier.COMMON][0];
-  if (modifierType instanceof WeightedModifierType)
-    modifierType = (modifierType as WeightedModifierType).modifierType;
-  return modifierType;
-}
-
-export class ModifierTypeOption {
-  public type: ModifierType;
-  public upgradeCount: integer;
-  public cost: integer;
-
-  constructor(type: ModifierType, upgradeCount: integer, cost: number = 0) {
-    this.type = type;
-    this.upgradeCount = upgradeCount;
-    this.cost = Math.min(Math.round(cost), Number.MAX_SAFE_INTEGER);
-  }
-}
-
-export function getPartyLuckValue(party: Pokemon[]): integer {
-  return Phaser.Math.Clamp(party.map(p => p.isFainted() ? 0 : p.getLuck())
-    .reduce((total: integer, value: integer) => total += value, 0), 0, 14);
-}
-
-export function getLuckString(luckValue: integer): string {
-  return ['D', 'C', 'C+', 'B-', 'B', 'B+', 'A-', 'A', 'A+', 'A++', 'S', 'S+', 'SS', 'SS+', 'SSS'][luckValue];
 }
 
 export function getLuckTextTint(luckValue: integer): integer {

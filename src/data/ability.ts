@@ -9,7 +9,7 @@ import { BattlerTag } from "./battler-tags";
 import { BattlerTagType } from "./enums/battler-tag-type";
 import { StatusEffect, getStatusEffectDescriptor, getStatusEffectHealText } from "./status-effect";
 import { Gender } from "./gender";
-import Move, { AttackMove, MoveCategory, MoveFlags, MoveTarget, RecoilAttr, StatusMoveTypeImmunityAttr, FlinchAttr, OneHitKOAttr, HitHealAttr, StrengthSapHealAttr, allMoves, StatusMove } from "./move";
+import Move, { AttackMove, MoveCategory, MoveFlags, MoveTarget, RecoilAttr, StatusMoveTypeImmunityAttr, FlinchAttr, OneHitKOAttr, HitHealAttr, StrengthSapHealAttr, allMoves, StatusMove, VariablePowerAttr, applyMoveAttrs, VariableMoveTypeAttr } from "./move";
 import { ArenaTagSide, ArenaTrapTag } from "./arena-tag";
 import { ArenaTagType } from "./enums/arena-tag-type";
 import { Stat } from "./pokemon-stat";
@@ -333,11 +333,15 @@ export class TypeImmunityAbAttr extends PreDefendAbAttr {
   }
 
   applyPreDefend(pokemon: Pokemon, passive: boolean, attacker: Pokemon, move: PokemonMove, cancelled: Utils.BooleanHolder, args: any[]): boolean {
-    if ((move.getMove() instanceof AttackMove || move.getMove().getAttrs(StatusMoveTypeImmunityAttr).find(attr => (attr as StatusMoveTypeImmunityAttr).immuneType === this.immuneType)) && move.getMove().type === this.immuneType) {
+    const variableType = new Utils.IntegerHolder(move.getMove().type);
+    applyMoveAttrs(VariableMoveTypeAttr, attacker, pokemon, move.getMove(), variableType);
+    if ((
+      (move.getMove() instanceof AttackMove) || 
+      (!!move.getMove().getAttrs(StatusMoveTypeImmunityAttr).find(attr => (attr as StatusMoveTypeImmunityAttr).immuneType === this.immuneType))
+    ) && (variableType.value === this.immuneType)) {
       (args[0] as Utils.NumberHolder).value = 0;
       return true;
     }
-
     return false;
   }
 
@@ -2973,9 +2977,17 @@ export function initAbilities() {
       .attr(IgnoreOpponentStatChangesAbAttr)
       .ignorable(),
     new Ability(Abilities.TINTED_LENS, 4)
-      .attr(MovePowerBoostAbAttr, (user, target, move) => target.getAttackTypeEffectiveness(move.type) <= 0.5, 2),
+      .attr(MovePowerBoostAbAttr, (user, target, move) => {
+        const variableType = new Utils.IntegerHolder(move.type);
+        applyMoveAttrs(VariableMoveTypeAttr, user, target, move, variableType);
+        return target.getAttackTypeEffectiveness(variableType.value) <= 0.5;
+      }, 2),
     new Ability(Abilities.FILTER, 4)
-      .attr(ReceivedMoveDamageMultiplierAbAttr,(target, user, move) => target.getAttackTypeEffectiveness(move.type) >= 2, 0.75)
+      .attr(ReceivedMoveDamageMultiplierAbAttr, (target, user, move) => {
+        const variableType = new Utils.IntegerHolder(move.type);
+        applyMoveAttrs(VariableMoveTypeAttr, user, target, move, variableType);
+        return target.getAttackTypeEffectiveness(move.type) >= 2;
+      }, 0.75)
       .ignorable(),
     new Ability(Abilities.SLOW_START, 4)
       .attr(PostSummonAddBattlerTagAbAttr, BattlerTagType.SLOW_START, 5),
@@ -2990,7 +3002,11 @@ export function initAbilities() {
       .attr(BlockWeatherDamageAttr, WeatherType.HAIL)
       .attr(PostWeatherLapseHealAbAttr, 1, WeatherType.HAIL, WeatherType.SNOW),
     new Ability(Abilities.SOLID_ROCK, 4)
-      .attr(ReceivedMoveDamageMultiplierAbAttr,(target, user, move) => target.getAttackTypeEffectiveness(move.type) >= 2, 0.75)
+      .attr(ReceivedMoveDamageMultiplierAbAttr, (target, user, move) => {
+        const variableType = new Utils.IntegerHolder(move.type);
+        applyMoveAttrs(VariableMoveTypeAttr, user, target, move, variableType);
+        return target.getAttackTypeEffectiveness(move.type) >= 2;
+      }, 0.75)
       .ignorable(),
     new Ability(Abilities.SNOW_WARNING, 4)
       .attr(PostSummonWeatherChangeAbAttr, WeatherType.SNOW)

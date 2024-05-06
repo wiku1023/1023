@@ -4,7 +4,7 @@ import { Biome } from "./data/enums/biome";
 import { Moves } from "./data/enums/moves";
 import { WeatherType } from "./data/weather";
 
-export const SEED_OVERRIDE = 'b3DoubDG5i4izShAO06Z2V2y';
+export const SEED_OVERRIDE = '';
 export const STARTER_SPECIES_OVERRIDE = 0;
 export const STARTER_FORM_OVERRIDE = 0;
 export const STARTING_LEVEL_OVERRIDE = 0;

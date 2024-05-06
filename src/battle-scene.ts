@@ -821,11 +821,12 @@ export default class BattleScene extends SceneBase {
 				if (trainerConfigs[trainerType].doubleOnly)
 					doubleTrainer = true;
 				else if (trainerConfigs[trainerType].hasDouble) {
-					let doubleChance = new Utils.IntegerHolder(newWaveIndex % 10 === 0 ? 32 : 8);
+					const doubleChance = new Utils.IntegerHolder(newWaveIndex % 10 === 0 ? 32 : 8);
 					this.applyModifiers(DoubleBattleChanceBoosterModifier, true, doubleChance);
 					playerField.forEach(p => applyAbAttrs(DoubleBattleChanceAbAttr, p, null, doubleChance));
 					doubleTrainer = !Utils.randSeedInt(doubleChance.value);
-					if (this.getModifiers(DoubleBattleChancePreventerModifier).length != 0) doubleTrainer = false;
+					if (this.getModifiers(DoubleBattleChancePreventerModifier).length != 0)
+						doubleTrainer = false;
 				}
 				newTrainer = trainerData !== undefined ? trainerData.toTrainer(this) : new Trainer(this, trainerType, doubleTrainer ? TrainerVariant.DOUBLE : Utils.randSeedInt(2) ? TrainerVariant.FEMALE : TrainerVariant.DEFAULT);
 				this.field.add(newTrainer);
@@ -834,11 +835,12 @@ export default class BattleScene extends SceneBase {
 
 		if (double === undefined && newWaveIndex > 1) {
 			if (newBattleType === BattleType.WILD && !this.gameMode.isWaveFinal(newWaveIndex)) {
-				let doubleChance = new Utils.IntegerHolder(newWaveIndex % 10 === 0 ? 32 : 8);
+				const doubleChance = new Utils.IntegerHolder(newWaveIndex % 10 === 0 ? 32 : 8);
 				this.applyModifiers(DoubleBattleChanceBoosterModifier, true, doubleChance);
 				playerField.forEach(p => applyAbAttrs(DoubleBattleChanceAbAttr, p, null, doubleChance));
 				newDouble = !Utils.randSeedInt(doubleChance.value);
-				if (this.getModifiers(DoubleBattleChancePreventerModifier).length != 0) newDouble = false;
+				if (this.getModifiers(DoubleBattleChancePreventerModifier).length != 0)
+					newDouble = false;
 			} else if (newBattleType === BattleType.TRAINER)
 				newDouble = newTrainer.variant === TrainerVariant.DOUBLE;
 		} else if (!battleConfig)

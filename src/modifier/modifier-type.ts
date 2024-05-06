@@ -336,7 +336,7 @@ export class DoubleBattleChancePreventerModifierType extends ModifierType {
   public battleCount: integer;
 
   constructor(name: string, battleCount: integer) {
-    super(name, `Prevents the chance of an encounter being a double battle for ${battleCount} battles`, (_type, _args) => new Modifiers.DoubleBattleChancePreventerModifier(this, this.battleCount),
+    super(name, `Prevents double battles for ${battleCount} battles`, (_type, _args) => new Modifiers.DoubleBattleChancePreventerModifier(this, this.battleCount),
       null, 'repel');
 
     this.battleCount = battleCount;
@@ -996,8 +996,7 @@ const modifierPool: ModifierPool = {
     }, 3),
     new WeightedModifierType(modifierTypes.REPEL, (party: Pokemon[]) => {
       const existingItem = party[0].scene.findModifier(m => m.type instanceof DoubleBattleChancePreventerModifierType || m.type instanceof DoubleBattleChanceBoosterModifierType);
-      //return existingItem ? 0 : 2;
-      return 10000
+      return existingItem ? 0 : 2;
     }),
     new WeightedModifierType(modifierTypes.LURE, (party: Pokemon[]) => {
       const existingItem = party[0].scene.findModifier(m => m.type instanceof DoubleBattleChancePreventerModifierType || m.type instanceof DoubleBattleChanceBoosterModifierType);

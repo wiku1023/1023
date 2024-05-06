@@ -870,7 +870,7 @@ export default class BattleScene extends SceneBase {
 	}
 
 	newBattle(waveIndex?: integer, battleType?: BattleType, trainerData?: TrainerData, double?: boolean): Battle {
-		if (this.getModifiers(DoubleBattleChancePreventerModifier) != null) {
+		if (this.getModifiers(DoubleBattleChancePreventerModifier).length != 0) {
 			double = false;
 		}
 		let newWaveIndex = waveIndex || ((this.currentBattle?.waveIndex || (startingWave - 1)) + 1);

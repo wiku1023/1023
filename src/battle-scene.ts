@@ -63,7 +63,7 @@ import { STARTING_WAVE_OVERRIDE, OPP_SPECIES_OVERRIDE, SEED_OVERRIDE, STARTING_B
 import {InputsController} from "./inputs-controller";
 import {UiInputs} from "./ui-inputs";
 
-export const bypassLogin = import.meta.env.VITE_BYPASS_LOGIN === "1";
+export const bypassLogin = Boolean(import.meta.env.VITE_BYPASS_LOGIN);
 
 const DEBUG_RNG = false;
 
@@ -94,7 +94,7 @@ export default class BattleScene extends SceneBase {
 	public gameSpeed: integer = 1;
 	public damageNumbersMode: integer = 0;
 	public showLevelUpStats: boolean = true;
-	public enableTutorials: boolean = import.meta.env.VITE_BYPASS_TUTORIAL === "1";
+	public enableTutorials: boolean = Boolean(import.meta.env.VITE_BYPASS_TUTORIAL);
 	public enableRetries: boolean = false;
 	public uiTheme: UiTheme = UiTheme.DEFAULT;
 	public windowType: integer = 0;

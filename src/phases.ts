@@ -21,7 +21,7 @@ import { Biome } from "./data/enums/biome";
 import { ModifierTier } from "./modifier/modifier-tier";
 import { FusePokemonModifierType, ModifierPoolType, ModifierType, ModifierTypeFunc, ModifierTypeOption, PokemonModifierType, PokemonMoveModifierType, PokemonPpRestoreModifierType, PokemonPpUpModifierType, RememberMoveModifierType, TmModifierType, getDailyRunStarterModifiers, getEnemyBuffModifierForWave, getModifierType, getPlayerModifierTypeOptions, getPlayerShopModifierTypeOptionsForWave, modifierTypes, regenerateModifierPoolThresholds } from "./modifier/modifier-type";
 import SoundFade from "phaser3-rex-plugins/plugins/soundfade";
-import { BattlerTagLapseType, EncoreTag, HideSpriteTag as HiddenTag, ProtectedTag, TrappedTag } from "./data/battler-tags";
+import { BattlerTag, BattlerTagLapseType, MagicCoatTag, EncoreTag, HideSpriteTag as HiddenTag, ProtectedTag, TrappedTag } from "./data/battler-tags";
 import { BattlerTagType } from "./data/enums/battler-tag-type";
 import { getPokemonMessage } from "./messages";
 import { Starter } from "./ui/starter-select-ui-handler";
@@ -30,7 +30,7 @@ import { Weather, WeatherType, getRandomWeatherType, getTerrainBlockMessage, get
 import { TempBattleStat } from "./data/temp-battle-stat";
 import { ArenaTagSide, ArenaTrapTag, MistTag, TrickRoomTag } from "./data/arena-tag";
 import { ArenaTagType } from "./data/enums/arena-tag-type";
-import { CheckTrappedAbAttr, IgnoreOpponentStatChangesAbAttr, PostAttackAbAttr, PostBattleAbAttr, PostDefendAbAttr, PostSummonAbAttr, PostTurnAbAttr, PostWeatherLapseAbAttr, PreSwitchOutAbAttr, PreWeatherDamageAbAttr, ProtectStatAbAttr, RedirectMoveAbAttr, RunSuccessAbAttr, StatChangeMultiplierAbAttr, SuppressWeatherEffectAbAttr, SyncEncounterNatureAbAttr, applyAbAttrs, applyCheckTrappedAbAttrs, applyPostAttackAbAttrs, applyPostBattleAbAttrs, applyPostDefendAbAttrs, applyPostSummonAbAttrs, applyPostTurnAbAttrs, applyPostWeatherLapseAbAttrs, applyPreStatChangeAbAttrs, applyPreSwitchOutAbAttrs, applyPreWeatherEffectAbAttrs, BattleStatMultiplierAbAttr, applyBattleStatMultiplierAbAttrs, IncrementMovePriorityAbAttr, applyPostVictoryAbAttrs, PostVictoryAbAttr, applyPostBattleInitAbAttrs, PostBattleInitAbAttr, BlockNonDirectDamageAbAttr as BlockNonDirectDamageAbAttr, applyPostKnockOutAbAttrs, PostKnockOutAbAttr, PostBiomeChangeAbAttr, applyPostFaintAbAttrs, PostFaintAbAttr, IncreasePpAbAttr, PostStatChangeAbAttr, applyPostStatChangeAbAttrs, AlwaysHitAbAttr, PreventBerryUseAbAttr, StatChangeCopyAbAttr } from "./data/ability";
+import { CheckTrappedAbAttr, IgnoreOpponentStatChangesAbAttr, PostAttackAbAttr, PostBattleAbAttr, PostDefendAbAttr, PostSummonAbAttr, PostTurnAbAttr, PostWeatherLapseAbAttr, PreSwitchOutAbAttr, PreWeatherDamageAbAttr, ProtectStatAbAttr, RedirectMoveAbAttr, RunSuccessAbAttr, StatChangeMultiplierAbAttr, SuppressWeatherEffectAbAttr, SyncEncounterNatureAbAttr, applyAbAttrs, applyCheckTrappedAbAttrs, applyPostAttackAbAttrs, applyPostBattleAbAttrs, applyPostDefendAbAttrs, applyPostSummonAbAttrs, applyPostTurnAbAttrs, applyPostWeatherLapseAbAttrs, applyPreStatChangeAbAttrs, applyPreSwitchOutAbAttrs, applyPreWeatherEffectAbAttrs, BattleStatMultiplierAbAttr, applyBattleStatMultiplierAbAttrs, IncrementMovePriorityAbAttr, applyPostVictoryAbAttrs, PostVictoryAbAttr, applyPostBattleInitAbAttrs, PostBattleInitAbAttr, BlockNonDirectDamageAbAttr as BlockNonDirectDamageAbAttr, applyPostKnockOutAbAttrs, PostKnockOutAbAttr, PostBiomeChangeAbAttr, applyPostFaintAbAttrs, PostFaintAbAttr, IncreasePpAbAttr, PostStatChangeAbAttr, applyPostStatChangeAbAttrs, AlwaysHitAbAttr, PreventBerryUseAbAttr, StatChangeCopyAbAttr, MagicBounceAbAttr, MaxMultiHitAbAttr } from "./data/ability";
 import { Unlockables, getUnlockableName } from "./system/unlockables";
 import { getBiomeKey } from "./field/arena";
 import { BattleType, BattlerIndex, TurnCommand } from "./battle";
@@ -2385,8 +2385,8 @@ export class MoveEffectPhase extends PokemonPhase {
   start() {
     super.start();
 
-    const user = this.getUserPokemon();
-    const targets = this.getTargets();
+    let user = this.getUserPokemon();
+    let targets = this.getTargets();
 
     if (!user?.isOnField())
       return super.end();
@@ -2429,12 +2429,40 @@ export class MoveEffectPhase extends PokemonPhase {
         return this.end();
       }
 
+      let isBounced: BattlerTag | boolean = false;
+      for (let opponent of targets) {
+        const targetHasMagicBounce = new Utils.BooleanHolder(false);
+        applyAbAttrs(MagicBounceAbAttr, opponent, null, targetHasMagicBounce);
+        isBounced = this.move.getMove().hasFlag(MoveFlags.MAGIC_COAT_MOVE) && (opponent.findTags(t => t instanceof MagicCoatTag).find(t => opponent.lapseTag(t.tagType)) || targetHasMagicBounce.value);
+        if (isBounced) {
+          this.scene.queueMessage(getPokemonMessage(opponent, '\nbounced the move back!'));
+          if (this.move.getMove().isMultiTarget()){
+            this.targets = getMoveTargets(opponent, this.move.moveId).targets;
+            targets = [];
+            for (let index of this.targets){
+              const target = this.scene.getField()[index];
+              if (target)
+                targets.push(target);
+            }
+          } else {
+            this.targets = [user.getBattlerIndex()];
+            targets = [user];
+          }
+          user = opponent;
+          if (!this.move.getMove().applyConditions(user, opponent, this.move.getMove())) {
+            this.scene.queueMessage(i18next.t('menu:attackFailed'));
+            return this.end();
+          }
+          break;
+        }
+      }
+
       const applyAttrs: Promise<void>[] = [];
 
       // Move animation only needs one target
       new MoveAnim(this.move.getMove().id as Moves, user, this.getTarget()?.getBattlerIndex()).play(this.scene, () => {
         for (let target of targets) {
-          if (!targetHitChecks[target.getBattlerIndex()]) {
+          if (!targetHitChecks[target.getBattlerIndex()] && !isBounced) {
             user.turnData.hitCount = 1;
             user.turnData.hitsLeft = 1;
             this.scene.queueMessage(getPokemonMessage(user, '\'s\nattack missed!'));
@@ -2740,9 +2768,9 @@ export class StatChangePhase extends PokemonPhase {
       if (levels.value > 0 && this.canBeCopied)
         for (let opponent of pokemon.getOpponents())
           applyAbAttrs(StatChangeCopyAbAttr, opponent, null, this.stats, levels.value);
-      
+
       applyPostStatChangeAbAttrs(PostStatChangeAbAttr, pokemon, filteredStats, this.levels, this.selfTarget);
-      
+
       pokemon.updateInfo();
 
       handleTutorial(this.scene, Tutorial.Stat_Change).then(() => super.end());

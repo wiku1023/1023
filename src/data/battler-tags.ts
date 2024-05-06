@@ -182,7 +182,7 @@ export class InterruptedTag extends BattlerTag {
   lapse(pokemon: Pokemon, lapseType: BattlerTagLapseType): boolean {
     super.lapse(pokemon, lapseType);
     (pokemon.scene.getCurrentPhase() as MovePhase).cancel();
-    return true 
+    return true
   }
 }
 
@@ -790,6 +790,18 @@ export class ContactBurnProtectedTag extends ProtectedTag {
   }
 }
 
+export class MagicCoatTag extends BattlerTag {
+  constructor(sourceMove: Moves, tagType: BattlerTagType = BattlerTagType.MAGIC_COAT) {
+    super(tagType, BattlerTagLapseType.CUSTOM, 0, sourceMove);
+  }
+
+  onAdd(pokemon: Pokemon): void {
+    super.onAdd(pokemon);
+
+    pokemon.scene.queueMessage(getPokemonMessage(pokemon, ' shrouded\nitself with Magic Coat!'));
+  }
+}
+
 export class EnduringTag extends BattlerTag {
   constructor(sourceMove: Moves) {
     super(BattlerTagType.ENDURING, BattlerTagLapseType.TURN_END, 0, sourceMove);
@@ -1226,6 +1238,8 @@ export function getBattlerTag(tagType: BattlerTagType, turnCount: integer, sourc
       return new TypeBoostTag(tagType, sourceMove, Type.ELECTRIC, 2, true);
     case BattlerTagType.MAGNET_RISEN:
       return new MagnetRisenTag(tagType, sourceMove);
+    case BattlerTagType.MAGIC_COAT:
+      return new MagicCoatTag(sourceMove);
     case BattlerTagType.NONE:
     default:
         return new BattlerTag(tagType, BattlerTagLapseType.CUSTOM, turnCount, sourceMove, sourceId);

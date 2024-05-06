@@ -887,6 +887,30 @@ export class VariableMovePowerAbAttr extends PreAttackAbAttr {
   }
 }
 
+export class PreAttackChangeType  extends PreAttackAbAttr{
+  private condition: PokemonAttackCondition;
+  
+  constructor (condition:PokemonAttackCondition) {
+    super(true);
+    this.condition = condition;
+  }
+  
+  applyPreAttack(pokemon:Pokemon,passive:boolean,defender:Pokemon,move:PokemonMove): boolean{
+    const MoveType = move.getMove().type;
+    const originalType = pokemon.getTypes();
+
+    if (this.condition(pokemon,defender,move.getMove())){
+      if (originalType.length > 1 || originalType[0] !== MoveType){
+        pokemon.summonData.types = [MoveType];
+        pokemon.battleSummonData.abilityTriggered = true;
+        pokemon.updateInfo();
+        pokemon.scene.queueMessage(getPokemonMessage(pokemon, ` tranformed\ninto the ${Utils.toReadableString(Type[MoveType])} type!`));
+      }
+    }
+    return false;
+  }
+}
+ 
 export class VariableMoveTypeAbAttr extends AbAttr {
   apply(pokemon: Pokemon, passive: boolean, cancelled: Utils.BooleanHolder, args: any[]): boolean {
     //const power = args[0] as Utils.IntegerHolder;
@@ -3144,7 +3168,7 @@ export function initAbilities() {
     new Ability(Abilities.CHEEK_POUCH, 6)
       .unimplemented(),
     new Ability(Abilities.PROTEAN, 6)
-      .unimplemented(),
+      .attr(PreAttackChangeType,(user,target,move) => move.id !== Moves.STRUGGLE && !user.isTerastallized() && user.battleSummonData.abilityTriggered === false), 
     new Ability(Abilities.FUR_COAT, 6)
       .attr(ReceivedMoveDamageMultiplierAbAttr, (target, user, move) => move.category === MoveCategory.PHYSICAL, 0.5)
       .ignorable(),
@@ -3364,7 +3388,7 @@ export function initAbilities() {
     new Ability(Abilities.DAUNTLESS_SHIELD, 8)
       .attr(PostSummonStatChangeAbAttr, BattleStat.DEF, 1, true),
     new Ability(Abilities.LIBERO, 8)
-      .unimplemented(),
+    .attr(PreAttackChangeType,(user,target,move) => move.id !== Moves.STRUGGLE && !user.isTerastallized() && user.battleSummonData.abilityTriggered === false),
     new Ability(Abilities.BALL_FETCH, 8)
       .unimplemented(),
     new Ability(Abilities.COTTON_DOWN, 8)

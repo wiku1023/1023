@@ -1045,7 +1045,14 @@ const modifierPool: ModifierPool = {
       return thresholdPartyMemberCount;
     }, 3),
     new WeightedModifierType(modifierTypes.DIRE_HIT, 4),
-    new WeightedModifierType(modifierTypes.SUPER_LURE, 4),
+    new WeightedModifierType(modifierTypes.SUPER_REPEL, (party: Pokemon[]) => {
+      const existingItem = party[0].scene.findModifier(m => m.type instanceof DoubleBattleChancePreventerModifierType || m.type instanceof DoubleBattleChanceBoosterModifierType);
+      return existingItem ? 0 : 4;
+    }),
+    new WeightedModifierType(modifierTypes.SUPER_LURE, (party: Pokemon[]) => {
+      const existingItem = party[0].scene.findModifier(m => m.type instanceof DoubleBattleChancePreventerModifierType || m.type instanceof DoubleBattleChanceBoosterModifierType);
+      return existingItem ? 0 : 4;
+    }),
     new WeightedModifierType(modifierTypes.NUGGET, 5),
     new WeightedModifierType(modifierTypes.EVOLUTION_ITEM, (party: Pokemon[]) => {
       return Math.min(Math.ceil(party[0].scene.currentBattle.waveIndex / 15), 8);
@@ -1064,7 +1071,14 @@ const modifierPool: ModifierPool = {
   ].map(m => { m.setTier(ModifierTier.GREAT); return m; }),
   [ModifierTier.ULTRA]: [
     new WeightedModifierType(modifierTypes.ULTRA_BALL, 24),
-    new WeightedModifierType(modifierTypes.MAX_LURE, 4),
+    new WeightedModifierType(modifierTypes.MAX_REPEL, (party: Pokemon[]) => {
+      const existingItem = party[0].scene.findModifier(m => m.type instanceof DoubleBattleChancePreventerModifierType || m.type instanceof DoubleBattleChanceBoosterModifierType);
+      return existingItem ? 0 : 4;
+    }),
+    new WeightedModifierType(modifierTypes.MAX_LURE, (party: Pokemon[]) => {
+      const existingItem = party[0].scene.findModifier(m => m.type instanceof DoubleBattleChancePreventerModifierType || m.type instanceof DoubleBattleChanceBoosterModifierType);
+      return existingItem ? 0 : 4;
+    }),
     new WeightedModifierType(modifierTypes.BIG_NUGGET, 12),
     new WeightedModifierType(modifierTypes.PP_UP, 9),
     new WeightedModifierType(modifierTypes.PP_MAX, 3),

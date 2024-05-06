@@ -2965,8 +2965,7 @@ export function initAbilities() {
     new Ability(Abilities.NO_GUARD, 4)
       .attr(AlwaysHitAbAttr)
       .attr(DoubleBattleChanceAbAttr),
-    new Ability(Abilities.STALL, 4)
-      .unimplemented(),
+    new Ability(Abilities.STALL, 4),
     new Ability(Abilities.TECHNICIAN, 4)
       .attr(MovePowerBoostAbAttr, (user, target, move) => move.power <= 60, 1.5),
     new Ability(Abilities.LEAF_GUARD, 4)

@@ -786,6 +786,7 @@ export enum MultiHitType {
   _3,
   _3_INCR,
   _1_TO_10,
+  BEAT_UP,
 }
 
 export class HealAttr extends MoveEffectAttr {
@@ -996,6 +997,11 @@ export class MultiHitAttr extends MoveAttr {
             hitTimes = 10;
         }
         break;
+      case MultiHitType.BEAT_UP:
+        // No status means the ally pokemon can contribute to Beat Up
+        hitTimes = user.scene.getParty().reduce((total, pokemon) => {
+          return total + (pokemon.id === user.id ? 1 : pokemon?.status && pokemon.status.effect !== StatusEffect.NONE ? 0 : 1)
+        }, 0);
     }
     (args[0] as Utils.IntegerHolder).value = hitTimes;
     return true;
@@ -1736,6 +1742,39 @@ export class MovePowerMultiplierAttr extends VariablePowerAttr {
     power.value *= this.powerMultiplierFunc(user, target, move);
 
     return true;
+  }
+}
+
+const beatUpFunc = (user: Pokemon, allyIndex: number) => {
+  const party = user.scene.getParty();
+
+  const calculateDamage = (pokemon: Pokemon) => {
+    return (pokemon.species.getBaseStat(Stat.ATK) / 10) + 5
+  }
+
+  for (let i = allyIndex; i < party.length; i++) {
+    const pokemon = party[i];
+
+    if (pokemon.id === user.id) {
+      return calculateDamage(pokemon);
+    }
+    if (pokemon?.status && pokemon.status.effect !== StatusEffect.NONE) {
+      continue;
+    }
+    // No status means the ally pokemon can contribute to Beat Up
+    else {
+      return calculateDamage(pokemon);
+    }
+  }
+}
+
+export class BeatUpAttr extends VariablePowerAttr {
+  apply(user: Pokemon, target: Pokemon, move: Move, args: any[]): boolean {
+
+    const power = args[0] as Utils.NumberHolder;
+    const allyIndex = user.turnData.hitCount - user.turnData.hitsLeft;
+    power.value = beatUpFunc(user, allyIndex)
+    return false;
   }
 }
 
@@ -4693,8 +4732,9 @@ export function initMoves() {
       .attr(TrapAttr, BattlerTagType.WHIRLPOOL)
       .attr(HitsTagAttr, BattlerTagType.UNDERWATER, true),
     new AttackMove(Moves.BEAT_UP, Type.DARK, MoveCategory.PHYSICAL, -1, 100, 10, -1, 0, 2)
-      .makesContact(false)
-      .unimplemented(),
+      .attr(MultiHitAttr, MultiHitType.BEAT_UP)
+      .attr(BeatUpAttr)
+      .makesContact(false),
     new AttackMove(Moves.FAKE_OUT, Type.NORMAL, MoveCategory.PHYSICAL, 40, 100, 10, 100, 3, 3)
       .attr(FlinchAttr)
       .condition(new FirstMoveCondition()),

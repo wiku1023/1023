@@ -8,7 +8,7 @@ import * as Utils from "../utils";
 import { Moves } from "./enums/moves";
 import { ChargeAttr, MoveFlags, allMoves } from "./move";
 import { Type } from "./type";
-import { BlockNonDirectDamageAbAttr, FlinchEffectAbAttr, ReverseDrainAbAttr, applyAbAttrs, DisguiseConfusionDamageInteractionAbAttr } from "./ability";
+import { BlockNonDirectDamageAbAttr, FlinchEffectAbAttr, ReverseDrainAbAttr, applyAbAttrs, DisguiseConfusionInteractionAbAttr } from "./ability";
 import { Abilities } from "./enums/abilities";
 import { BattlerTagType } from "./enums/battler-tag-type";
 import { TerrainType } from "./terrain";
@@ -227,10 +227,10 @@ export class ConfusedTag extends BattlerTag {
         const damage = Math.ceil(((((2 * pokemon.level / 5 + 2) * 40 * atk / def) / 50) + 2) * (pokemon.randSeedInt(15, 85) / 100));
         pokemon.scene.queueMessage('It hurt itself in its\nconfusion!');
 
-        const cancelled = new Utils.BooleanHolder(false);
-        applyAbAttrs(DisguiseConfusionDamageInteractionAbAttr, pokemon, cancelled);
-
-        if (!cancelled.value) {
+        const damageCancelled = new Utils.BooleanHolder(false);
+        applyAbAttrs(DisguiseConfusionInteractionAbAttr, pokemon, damageCancelled);
+        //Confusion damage will not be dealt if Pokémon has Disguise and has not triggered.
+        if (!damageCancelled.value) {
           pokemon.damageAndUpdate(damage);
           pokemon.battleData.hitCount++;
         }

@@ -2252,13 +2252,11 @@ export class MovePhase extends BattlePhase {
       
       if ((moveQueue.length && moveQueue[0].move === Moves.NONE) || !targets.length) {
         moveQueue.shift();
-        const targetedOpponents = this.pokemon.getOpponents().filter(o => this.targets.includes(o.getBattlerIndex()));
-if ((!targetedOpponents[0].getTag(BattlerTagType.FLYING)) &&
-    (!targetedOpponents[0].getTag(BattlerTagType.UNDERGROUND)) && 
-    (!targetedOpponents[0].getTag(BattlerTagType.UNDERWATER)) && 
-    (!targetedOpponents[0].getTag(BattlerTagType.HIDDEN)) ){
-        this.cancel();
-        }
+        const targetedOpponent = this.pokemon.getOpponents().filter(o => this.targets.includes(o.getBattlerIndex())); //Gets target of the move
+        if(![BattlerTagType.HIDDEN, BattlerTagType.UNDERGROUND, BattlerTagType.UNDERWATER, BattlerTagType.FLYING].some(t => !!targetedOpponent[0].getTag(t))){ 
+          //Check if target is invulnerable, and if so, doesn't cancel the attack
+          this.cancel();
+        } 
       }
 
       if (this.cancelled) {

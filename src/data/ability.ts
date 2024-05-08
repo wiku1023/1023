@@ -9,7 +9,7 @@ import { BattlerTag } from "./battler-tags";
 import { BattlerTagType } from "./enums/battler-tag-type";
 import { StatusEffect, getStatusEffectDescriptor, getStatusEffectHealText } from "./status-effect";
 import { Gender } from "./gender";
-import Move, { AttackMove, MoveCategory, MoveFlags, MoveTarget, RecoilAttr, StatusMoveTypeImmunityAttr, FlinchAttr, OneHitKOAttr, HitHealAttr, StrengthSapHealAttr, allMoves, StatusMove } from "./move";
+import Move, { AttackMove, MoveCategory, MoveFlags, MoveTarget, RecoilAttr, StatusMoveTypeImmunityAttr, FlinchAttr, OneHitKOAttr, HitHealAttr, StrengthSapHealAttr, allMoves, StatusMove, ForceSwitchOutAttr } from "./move";
 import { ArenaTagSide, ArenaTrapTag } from "./arena-tag";
 import { ArenaTagType } from "./enums/arena-tag-type";
 import { Stat } from "./pokemon-stat";
@@ -973,6 +973,34 @@ export class MovePowerBoostAbAttr extends VariableMovePowerAbAttr {
 export class MoveTypePowerBoostAbAttr extends MovePowerBoostAbAttr {
   constructor(boostedType: Type, powerMultiplier?: number) {
     super((pokemon, defender, move) => move.type === boostedType, powerMultiplier || 1.5);
+  }
+}
+
+export class AnalyticAbAttr extends MovePowerBoostAbAttr {
+  constructor(powerMultiplier: number = 1.3) {
+    const condition: PokemonAttackCondition = (user, target, move) => {
+      const otherPokemons = target.scene.getField(true).filter(pokemon => pokemon.id !== user.id);
+      let fasterPokemon = 0; // increment for each pokemon that has moved before user
+
+      otherPokemons.forEach(pokemon => { 
+
+        let switchMove = false;
+        const moveMatches = pokemon.getLastXMoves(1).find(m => m.turn === pokemon.scene.currentBattle.turn);
+        const prioCommand = user.scene.currentBattle.turnCommands[pokemon.getBattlerIndex()].command !== Command.FIGHT;
+        
+        if(target.battleSummonData.turnCount === 0)
+          switchMove = true;
+
+        if(moveMatches || prioCommand || switchMove) // check to see if they've used a move this round, ball/pokemon/run command, or switched out with a move
+          fasterPokemon++
+      });
+      if(fasterPokemon === otherPokemons.length) // only activate if ALL other pokemon have moved
+        return true; 
+      else
+        return false;
+    };
+
+    super(condition, powerMultiplier);
   }
 }
 
@@ -3115,7 +3143,7 @@ export function initAbilities() {
       .ignorable()
       .unimplemented(),
     new Ability(Abilities.ANALYTIC, 5)
-      .attr(MovePowerBoostAbAttr, (user, target, move) => !!target.getLastXMoves(1).find(m => m.turn === target.scene.currentBattle.turn) || user.scene.currentBattle.turnCommands[target.getBattlerIndex()].command !== Command.FIGHT, 1.3),
+      .attr(AnalyticAbAttr),
     new Ability(Abilities.ILLUSION, 5)
       .attr(UncopiableAbilityAbAttr)
       .attr(UnswappableAbilityAbAttr)
@@ -3261,7 +3289,7 @@ export function initAbilities() {
       .attr(NoFusionAbilityAbAttr)
       .partial(),
     new Ability(Abilities.STAKEOUT, 7)
-      .attr(MovePowerBoostAbAttr, (user, target, move) => user.scene.currentBattle.turnCommands[target.getBattlerIndex()].command === Command.POKEMON, 2),
+      .attr(MovePowerBoostAbAttr, (user, target, move) => user.scene.currentBattle.turnCommands[target.getBattlerIndex()].command === Command.POKEMON || target.battleSummonData.turnCount === 0, 2),
     new Ability(Abilities.WATER_BUBBLE, 7)
       .attr(ReceivedTypeDamageMultiplierAbAttr, Type.FIRE, 0.5)
       .attr(MoveTypePowerBoostAbAttr, Type.WATER, 1)

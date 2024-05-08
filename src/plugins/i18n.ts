@@ -99,6 +99,7 @@ declare module 'i18next' {
       fightUiHandler: SimpleTranslationEntries;
       tutorial: SimpleTranslationEntries;
       starterSelectUiHandler: SimpleTranslationEntries;
+      growth: SimpleTranslationEntries;
     };
   }
 }

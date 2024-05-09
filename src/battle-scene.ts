@@ -4,7 +4,7 @@ import { NextEncounterPhase, NewBiomeEncounterPhase, SelectBiomePhase, MessagePh
 import Pokemon, { PlayerPokemon, EnemyPokemon } from './field/pokemon';
 import PokemonSpecies, { PokemonSpeciesFilter, allSpecies, getPokemonSpecies, initSpecies, speciesStarters } from './data/pokemon-species';
 import * as Utils from './utils';
-import { Modifier, ModifierBar, ConsumablePokemonModifier, ConsumableModifier, PokemonHpRestoreModifier, HealingBoosterModifier, PersistentModifier, PokemonHeldItemModifier, ModifierPredicate, DoubleBattleChanceBoosterModifier, FusePokemonModifier, PokemonFormChangeItemModifier, TerastallizeModifier } from './modifier/modifier';
+import { Modifier, ModifierBar, ConsumablePokemonModifier, ConsumableModifier, PokemonHpRestoreModifier, HealingBoosterModifier, PersistentModifier, PokemonHeldItemModifier, ModifierPredicate, DoubleBattleChanceBoosterModifier, FusePokemonModifier, PokemonFormChangeItemModifier, TerastallizeModifier, modifiersOverride, itemHeldsOverride } from './modifier/modifier';
 import { PokeballType } from './data/pokeball';
 import { initCommonAnims, initMoveAnim, loadCommonAnimAssets, loadMoveAnimAssets, populateAnims } from './data/battle-anims';
 import { Phase } from './phase';
@@ -17,7 +17,7 @@ import { TextStyle, addTextObject } from './ui/text';
 import { Moves } from "./data/enums/moves";
 import { allMoves } from "./data/move";
 import { initMoves } from './data/move';
-import { ModifierPoolType, getDefaultModifierTypeForTier, getEnemyModifierTypesForWave, getLuckString, getLuckTextTint, getModifierPoolForType, getPartyLuckValue } from './modifier/modifier-type';
+import { ModifierPoolType, getDefaultModifierTypeForTier, getEnemyModifierTypesForWave, getLuckString, getLuckTextTint, getModifierPoolForType, getPartyLuckValue, modifierTypes, getModifierType } from './modifier/modifier-type';
 import AbilityBar from './ui/ability-bar';
 import { BlockItemTheftAbAttr, DoubleBattleChanceAbAttr, IncrementMovePriorityAbAttr, applyAbAttrs, initAbilities } from './data/ability';
 import { Abilities } from "./data/enums/abilities";
@@ -59,7 +59,7 @@ import { SceneBase } from './scene-base';
 import CandyBar from './ui/candy-bar';
 import { Variant, variantData } from './data/variant';
 import { Localizable } from './plugins/i18n';
-import { STARTING_WAVE_OVERRIDE, OPP_SPECIES_OVERRIDE, SEED_OVERRIDE, STARTING_BIOME_OVERRIDE, DOUBLE_BATTLE_OVERRIDE } from './overrides';
+import { STARTING_WAVE_OVERRIDE, OPP_SPECIES_OVERRIDE, SEED_OVERRIDE, STARTING_BIOME_OVERRIDE, DOUBLE_BATTLE_OVERRIDE, OPP_MODIFIER_OVERRIDE, OPP_MODIFIER_QTY_OVERRIDE } from './overrides';
 import {InputsController} from "./inputs-controller";
 import {UiInputs} from "./ui-inputs";
 
@@ -615,6 +615,8 @@ export default class BattleScene extends SceneBase {
 		if (OPP_SPECIES_OVERRIDE)
 			species = getPokemonSpecies(OPP_SPECIES_OVERRIDE);
 		const pokemon = new EnemyPokemon(this, species, level, trainerSlot, boss, dataSource);
+		modifiersOverride(this, false);
+		itemHeldsOverride(this, pokemon, false);
 		if (boss && !dataSource) {
 			const secondaryIvs = Utils.getIvsFromId(Utils.randSeedInt(4294967295));
 

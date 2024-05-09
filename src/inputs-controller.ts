@@ -36,6 +36,8 @@ export class InputsController {
     private time: Time;
     private player: Map<String, GamepadMapping> = new Map();
 
+    private gamepadSupport: boolean = true;
+
     constructor(scene: Phaser.Scene) {
         this.scene = scene;
         this.time = this.scene.time;
@@ -45,6 +47,7 @@ export class InputsController {
             this.interactions[b] = {
                 pressTime: false,
                 isPressed: false,
+                source: null,
             }
         }
         // We don't want the menu key to be repeated
@@ -87,16 +90,41 @@ export class InputsController {
         this.deactivatePressedKey();
     }
 
+    setGamepadSupport(value: boolean): void {
+        // value is true if we activate gamepad
+        // value is false if we deactivate gamepad
+        if (value) {
+            this.gamepadSupport = true;
+        } else {
+            this.gamepadSupport = false;
+            // if we disable the gamepad, we want to release every key pressed
+            this.deactivatePressedKey();
+        }
+    }
+
     update(): void {
         // reversed to let the cancel button have a kinda priority on the action button
         for (const b of Utils.getEnumValues(Button).reverse()) {
-            if (!this.interactions.hasOwnProperty(b)) continue;
-            if (this.repeatInputDurationJustPassed(b) && this.interactions[b].isPressed) {
+            if (
+                this.interactions.hasOwnProperty(b) && // if the button is in the interactions dict
+                this.repeatInputDurationJustPassed(b) && // if we hold enough the button
+                this.interactions[b].isPressed // if the button is pressed
+            ) {
+                // if the gamepad support is disable and the source is a gamepad
+                // we don't want to repeat the button
+                // even if we have disabled the gamepad, at the exact moment of the change in the menu
+                // we can be here and have an infinite loop since the code can't know we
+                // have released the key since the gamepad is not there anymore
+                if (!this.gamepadSupport && this.interactions[b].source === 'gamepad') {
+                    // if we are here and the gamepad is disabled, we delete the latest interracted button
+                    this.delLastProcessedMovementTime(b);
+                    return;
+                }
                 this.events.emit('input_down', {
-                    controller_type: 'repeated',
+                    controller_type: this.interactions[b].source,
                     button: b,
                 });
-                this.setLastProcessedMovementTime(b);
+                this.setLastProcessedMovementTime(b, this.interactions[b].source);
             }
         }
     }
@@ -143,7 +171,7 @@ export class InputsController {
     }
 
     gamepadButtonDown(pad: Phaser.Input.Gamepad.Gamepad, button: Phaser.Input.Gamepad.Button, value: number): void {
-        if (!this.scene.gamepadSupport) return;
+        if (!this.gamepadSupport) return;
         const actionMapping = this.getActionGamepadMapping();
         const buttonDown = actionMapping.hasOwnProperty(button.index) && actionMapping[button.index];
         if (buttonDown !== undefined) {
@@ -151,12 +179,12 @@ export class InputsController {
                 controller_type: 'gamepad',
                 button: buttonDown,
             });
-            this.setLastProcessedMovementTime(buttonDown);
+            this.setLastProcessedMovementTime(buttonDown, 'gamepad');
         }
     }
 
     gamepadButtonUp(pad: Phaser.Input.Gamepad.Gamepad, button: Phaser.Input.Gamepad.Button, value: number): void {
-        if (!this.scene.gamepadSupport) return;
+        if (!this.gamepadSupport) return;
         const actionMapping = this.getActionGamepadMapping();
         const buttonUp = actionMapping.hasOwnProperty(button.index) && actionMapping[button.index];
         if (buttonUp !== undefined) {
@@ -212,7 +240,7 @@ export class InputsController {
                         controller_type: 'keyboard',
                         button: index,
                     });
-                    this.setLastProcessedMovementTime(index);
+                    this.setLastProcessedMovementTime(index, 'keyboard');
                 });
                 key.on('up', () => {
                     this.events.emit('input_up', {
@@ -251,11 +279,13 @@ export class InputsController {
         }
     }
 
-    setLastProcessedMovementTime(button: Button): void {
+    // added source so when we repeat the key, we can also tell from which source the key is from
+    setLastProcessedMovementTime(button: Button, source: String = 'keyboard'): void {
         if (!this.interactions.hasOwnProperty(button)) return;
         this.setButtonLock(button);
         this.interactions[button].pressTime = this.time.now;
         this.interactions[button].isPressed = true;
+        this.interactions[button].source = source;
     }
 
     delLastProcessedMovementTime(button: Button): void {
@@ -263,15 +293,18 @@ export class InputsController {
         this.releaseButtonLock(button);
         this.interactions[button].pressTime = null;
         this.interactions[button].isPressed = false;
+        this.interactions[button].source = null;
     }
 
     deactivatePressedKey(): void {
         this.releaseButtonLock(this.buttonLock);
         this.releaseButtonLock(this.buttonLock2);
         for (const b of Utils.getEnumValues(Button)) {
-            if (!this.interactions.hasOwnProperty(b)) return;
-            this.interactions[b].pressTime = null;
-            this.interactions[b].isPressed = false;
+            if (this.interactions.hasOwnProperty(b)) {
+                this.interactions[b].pressTime = null;
+                this.interactions[b].isPressed = false;
+                this.interactions[b].source = null;
+            }
         }
     }
 

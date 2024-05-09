@@ -5,6 +5,7 @@ import { fightUiHandler } from "./fight-ui-handler";
 import { menu } from "./menu";
 import { menuUiHandler } from "./menu-ui-handler";
 import { move } from "./move";
+import { nature } from "./nature";
 import { pokeball } from "./pokeball";
 import { pokemon } from "./pokemon";
 import { pokemonStat } from "./pokemon-stat";
@@ -24,5 +25,7 @@ export const itConfig = {
     pokemonStat: pokemonStat,
     pokemon: pokemon,
     starterSelectUiHandler: starterSelectUiHandler,
-    tutorial: tutorial
+    tutorial: tutorial,
+
+    nature: nature
 }
